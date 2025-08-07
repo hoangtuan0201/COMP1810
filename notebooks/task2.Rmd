@@ -1,0 +1,116 @@
+---
+title: "task2"
+name: Tran Huu Hoang Tuan
+output: html_document
+---
+
+# Task 2
+
+```{r}
+install.packages(c("tidyverse", "readr", "imputeTS", "naniar", "VIM", "recipes", "Hmisc", "psych", "skimr","knitr"))
+```
+
+```{r}
+library(tidyverse) #include dplyr, ggplot2, ...
+library(readr)
+library(imputeTS) #Time-series missing data imputation
+library(naniar) #help us to summarise and visualize missing data
+library(dplyr)
+#library(Hmisc)
+library(skimr)
+library(VIM) #Visualization and Imputation of Missing values: kNN(), aggr(), matrixplot()
+library(recipes)
+library(psych)
+library(ggplot2)
+```
+
+# Task 2: d
+
+## **Read the Dataset**
+
+```{r}
+data1 <- read_csv("../data/diabetes.csv")
+print(data1)
+```
+
+```{r}
+#mean, median, sd, var each column
+data1 %>%
+  summarise(across(everything(),
+                   list(mean = ~mean(.x, na.rm = TRUE),
+                        median = ~median(.x, na.rm = TRUE),
+                        sd = ~sd(.x, na.rm = TRUE),
+                        var = ~var(.x, na.rm = TRUE))))
+```
+
+```{r}
+data1_long <- data1 %>%
+  pivot_longer(cols = 1:9, names_to = "Variable", values_to = "Value")
+
+#histogram
+ggplot(data1_long, aes(x = Value, fill = Variable)) +
+  geom_histogram(bins = 30, color = "black", alpha = 0.85) +
+  facet_wrap(~ Variable, scales = "free", ncol = 3) +
+  labs(title = "Histogram of each Variables",
+       x = "Value", y = "Frequency") +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    strip.text = element_text(face = "bold", size = 12),
+    axis.title = element_text(face = "bold"),
+    legend.position = "none"
+  ) +
+  scale_fill_brewer(palette = "Set2")
+
+#boxplot
+ggplot(data1_long, aes(x = Variable, y = Value, fill = Variable)) +
+  geom_boxplot(outlier.color = "black", outlier.size = 1, width = 0.6, alpha = 0.9) +
+  labs(title = "Boxplot of Variables", x = "", y = "Value") +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 11),
+    axis.title.y = element_text(face = "bold"),
+    legend.position = "none"
+  ) +
+  scale_fill_brewer(palette = "Pastel1")
+```
+
+# Task 2: e
+
+```{r}
+# Select column 2-6 and convert 0 to NA
+data_subset <- data1 %>%
+  select(2:6) %>%
+  mutate(across(everything(), ~na_if(., 0)))
+
+#Deal NA with median in each column
+for (colname in names(data_subset)) {
+  if (any(is.na(data_subset[[colname]]))) {
+    col_median <- median(data_subset[[colname]], na.rm = TRUE)
+    data_subset[[colname]][is.na(data_subset[[colname]])] <- col_median
+  }
+  print(data_subset)
+}
+
+#Histogram plot
+data_long_1 <- data_subset %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Value")
+
+ggplot(data_long_1, aes(x = Value, fill = Variable)) +
+  geom_histogram(bins = 30, color = "white", alpha = 0.85) +
+  facet_wrap(~ Variable, scales = "free", ncol = 3) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal(base_size = 13) +
+  labs(
+    title = "Histogram of Selected Variables",
+    x = "Value",
+    y = "Frequency"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    axis.title = element_text(face = "bold"),
+    strip.text = element_text(size = 12, face = "bold"),
+    legend.position = "none"
+  )
+```
