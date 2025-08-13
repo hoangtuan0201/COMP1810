@@ -103,12 +103,14 @@ data$Users <- as.numeric(gsub(",", "", data$Users))
 data$New.Users <- as.numeric(gsub(",", "", data$New.Users))
 data$Transactions <- as.numeric(gsub(",", "", data$Transactions))
 data$Conversion.Rate.... <- as.numeric(gsub(",", "", data$Conversion.Rate....))
+data$Sessions <- as.numeric(gsub(",", "", data$Sessions))
 
 
 device_summary <- data %>%
-  group_by(`Source...Medium`, Year, `Month.of.the.year`) %>%
+  group_by(Source...Medium, Year, Month.of.the.year) %>%
   summarise(total_users = sum(Users, na.rm = TRUE),
             total_new_users = sum(New.Users, na.rm = TRUE),
+            total_sessions = sum(Sessions, na.rm = TRUE),
             total_transactions = sum(Transactions, na.rm = TRUE),
             total_conversion_rate = sum(Conversion.Rate....), .groups = "drop")
 print(device_summary)
@@ -117,32 +119,23 @@ print(device_summary)
 #Device usage by user
 library(ggplot2)
 
-ggplot(device_summary %>% filter(Year == 2019),
-       aes(y = factor(`Source...Medium`), x = total_users, fill = `Source...Medium`)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Device usage by user (2019)", y = "Device", x = "Users") +
-  theme_minimal()
+ggplot(data = device_summary, 
+       aes(x = factor(Source...Medium), y = total_users, )) +
+  geom_bar(stat = "identity", position = "dodge",  fill = "#1f78b4") +
+  labs(title = "Device usage by user", x = "Device", y = "Users") +
+  theme_minimal() +
+  coord_flip()
 
-
-ggplot(device_summary %>% filter(Year == 2020),
-       aes(y = factor(`Source...Medium`), x = total_users, fill = `Source...Medium`)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Device usage by user (2020)", y = "Device", x = "Users") +
-  theme_minimal()
 
 #Device usage by new user
-ggplot(device_summary %>% filter(Year == 2019),
-       aes(y = factor(`Source...Medium`), x = total_new_users, fill = `Source...Medium`)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Device usage by new user (2019)", y = "Device", x = "New Users") +
-  theme_minimal()
+ggplot(data = device_summary, 
+       aes(x = factor(Source...Medium), y = total_new_users, )) +
+  geom_bar(stat = "identity", position = "dodge",  fill = "#1f78b4") +
+  labs(title = "Device usage by new user", x = "Device", y = "New Users") +
+  theme_minimal() +
+  coord_flip()
 
 
-ggplot(device_summary %>% filter(Year == 2020),
-       aes(y = factor(`Source...Medium`), x = total_new_users, fill = `Source...Medium`)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "Device usage by new user (2020)", y = "Device", x = "New Users") +
-  theme_minimal()
 
 
 data$YearMonth <- paste(data$Year, sprintf("%02d", data$`Month.of.the.year`), sep = "-")
